@@ -35,11 +35,11 @@ int main (int argc, char *argv[])
     int sockfd, numbytes, msglen, ret;
     char buf[MAXDATASIZE], msg[MAXDATASIZE], *newline;
     char res[MAXDATASIZE];
-    char *irc_host, *irc_port, *irc_chan, *irc_nick, *irc_name;
+    char *irc_host, *irc_port, *irc_chan, *irc_nick, *irc_pass, *irc_name;
 
     MYSQL *db;
 
-    sockfd = open_irc_socket (&irc_host, &irc_port, &irc_chan, &irc_nick, &irc_name);
+    sockfd = open_irc_socket (&irc_host, &irc_port, &irc_chan, &irc_nick, &irc_pass, &irc_name);
     if (sockfd < 0)
     {
         return 1;
@@ -117,6 +117,7 @@ int main (int argc, char *argv[])
     free (irc_port);
     free (irc_chan);
     free (irc_nick);
+    free (irc_pass);
     free (irc_name);
 
     return 0;

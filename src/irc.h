@@ -19,4 +19,4 @@
 
 #define MAXDATASIZE 512
 
-int open_irc_socket (char **host, char **port, char **chan, char **nick, char **name);
+int open_irc_socket (char **host, char **port, char **chan, char **nick, char **pass, char **name);
