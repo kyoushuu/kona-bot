@@ -29,6 +29,8 @@
 
 #include <arpa/inet.h>
 
+#include "io-utils.h"
+
 #define HOST "irc.rizon.net"
 #define PORT "6667"
 #define CHANNEL "#otakubytes"
@@ -52,6 +54,7 @@ int main (int argc, char *argv[])
 {
     int sockfd, numbytes, msglen, ret;
     char buf[MAXDATASIZE], msg[MAXDATASIZE], *newline;
+    char res[MAXDATASIZE];
     struct addrinfo hints, *servinfo, *p;
     int rv;
     char s[INET6_ADDRSTRLEN];
@@ -96,6 +99,15 @@ int main (int argc, char *argv[])
     printf ("Connecting to %s\n", s);
 
     freeaddrinfo (servinfo);
+
+    snprintf (res, MAXDATASIZE, "NICK %s\r\n", NICK);
+    send_all (sockfd, res);
+
+    snprintf (res, MAXDATASIZE, "USER %s 0 * :%s\r\n", NICK, NAME);
+    send_all (sockfd, res);
+
+    snprintf (res, MAXDATASIZE, "JOIN %s\r\n", CHANNEL);
+    send_all (sockfd, res);
 
     numbytes = 0;
     buf[0] = '\0';
