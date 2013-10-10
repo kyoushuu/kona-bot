@@ -5,11 +5,13 @@
 AM_CPPFLAGS = \
 	-DPACKAGE_LOCALE_DIR=\""$(localedir)"\" \
 	-DPACKAGE_SRC_DIR=\""$(srcdir)"\" \
-	-DPACKAGE_DATA_DIR=\""$(pkgdatadir)"\"
+	-DPACKAGE_DATA_DIR=\""$(pkgdatadir)"\" \
+	$(MYSQL_CFLAGS)
 
 AM_CFLAGS =\
 	 -Wall\
-	 -g
+	 -g \
+	 -O2
 
 bin_PROGRAMS = kona-bot
 
@@ -20,5 +22,6 @@ kona_bot_SOURCES = \
 
 kona_bot_LDFLAGS = 
 
-kona_bot_LDADD = 
+kona_bot_LDADD = \
+	$(MYSQL_LIBS)
 
