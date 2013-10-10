@@ -29,6 +29,9 @@
 
 #include <arpa/inet.h>
 
+#include <mysql.h>
+
+#include "database.h"
 #include "io-utils.h"
 
 #define HOST "irc.rizon.net"
@@ -58,6 +61,8 @@ int main (int argc, char *argv[])
     struct addrinfo hints, *servinfo, *p;
     int rv;
     char s[INET6_ADDRSTRLEN];
+
+    MYSQL *db;
 
     memset (&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC;
@@ -108,6 +113,15 @@ int main (int argc, char *argv[])
 
     snprintf (res, MAXDATASIZE, "JOIN %s\r\n", CHANNEL);
     send_all (sockfd, res);
+
+    db = open_database ();
+
+    if (db == NULL)
+    {
+        fprintf (stderr, "%s\n", mysql_error (db));
+        close (sockfd);
+        return 1;
+    }
 
     numbytes = 0;
     buf[0] = '\0';
@@ -166,6 +180,7 @@ int main (int argc, char *argv[])
         contents++;
     }
 
+    mysql_close (db);
     close (sockfd);
 
     return 0;
