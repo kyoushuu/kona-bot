@@ -137,6 +137,33 @@ int main (int argc, char *argv[])
         buf[numbytes] = '\0';
 
         printf ("%s\n", msg);
+
+        sender = msg + 1;
+
+        msgtype = strchr (msg, ' ');
+        if (!msgtype)
+            continue;
+        msgtype[0] = '\0';
+        msgtype++;
+
+        if (strcmp (msg, "PING") == 0)
+        {
+            /* PING has msgtype as the sender */
+            snprintf (res, MAXDATASIZE, "PONG :%s\r\n", msgtype);
+            send_all (sockfd, res);
+        }
+
+        recipient = strchr (msgtype, ' ');
+        if (!recipient)
+            continue;
+        recipient[0] = '\0';
+        recipient++;
+
+        contents = strchr (recipient, ' ');
+        if (!contents)
+            continue;
+        contents[0] = '\0';
+        contents++;
     }
 
     close (sockfd);
