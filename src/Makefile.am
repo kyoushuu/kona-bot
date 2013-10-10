@@ -14,7 +14,9 @@ AM_CFLAGS =\
 bin_PROGRAMS = kona-bot
 
 kona_bot_SOURCES = \
-	main.c
+	main.c \
+	io-utils.c \
+	io-utils.h
 
 kona_bot_LDFLAGS = 
 
