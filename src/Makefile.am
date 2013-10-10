@@ -20,7 +20,9 @@ kona_bot_SOURCES = \
 	io-utils.c \
 	io-utils.h \
 	database.c \
-	database.h
+	database.h \
+	irc.c \
+	irc.h
 
 kona_bot_LDFLAGS = 
 
