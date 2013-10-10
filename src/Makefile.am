@@ -18,7 +18,9 @@ bin_PROGRAMS = kona-bot
 kona_bot_SOURCES = \
 	main.c \
 	io-utils.c \
-	io-utils.h
+	io-utils.h \
+	database.c \
+	database.h
 
 kona_bot_LDFLAGS = 
 
