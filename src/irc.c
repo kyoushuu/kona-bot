@@ -45,7 +45,7 @@ get_in_addr (struct sockaddr *sa)
 }
 
 int
-open_irc_socket (char **host, char **port, char **chan, char **nick, char **name)
+open_irc_socket (char **host, char **port, char **chan, char **nick, char **pass, char **name)
 {
     char path[512], *buf, *saveptr, *field, *value;
     char res[MAXDATASIZE];
@@ -178,6 +178,12 @@ open_irc_socket (char **host, char **port, char **chan, char **nick, char **name
     snprintf (res, MAXDATASIZE, "USER %s 0 * :%s\r\n", irc_nick, irc_name);
     send_all (sockfd, res);
 
+    if (irc_pass && irc_pass[0] != '\0')
+    {
+        snprintf (res, MAXDATASIZE, "PRIVMSG NickServ :IDENTIFY %s\r\n", irc_pass);
+        send_all (sockfd, res);
+    }
+
     snprintf (res, MAXDATASIZE, "JOIN %s\r\n", irc_chan);
     send_all (sockfd, res);
 
@@ -185,6 +191,7 @@ open_irc_socket (char **host, char **port, char **chan, char **nick, char **name
     *port = strdup (irc_port);
     *chan = strdup (irc_chan);
     *nick = strdup (irc_nick);
+    *pass = strdup (irc_pass);
     *name = strdup (irc_name);
 
     free (buf);
