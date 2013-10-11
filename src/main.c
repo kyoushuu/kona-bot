@@ -48,7 +48,6 @@ int main (int argc, char *argv[])
     db = open_database ();
     if (db == NULL)
     {
-        fprintf (stderr, "%s\n", mysql_error (db));
         close (sockfd);
         return 1;
     }

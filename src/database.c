@@ -110,6 +110,7 @@ open_database ()
     db = mysql_init (NULL);
     if (!db)
     {
+        fprintf (stderr, "%s\n", mysql_error (db));
         free (buf);
         return NULL;
     }
@@ -120,6 +121,7 @@ open_database ()
 
     if (!conn)
     {
+        fprintf (stderr, "%s\n", mysql_error (db));
         mysql_close (db);
         return NULL;
     }
