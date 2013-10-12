@@ -26,8 +26,10 @@
 #include <mysql.h>
 
 #include "database.h"
+#include "genre.h"
 #include "io-utils.h"
 #include "irc.h"
+#include "str-utils.h"
 
 
 int main (int argc, char *argv[])
@@ -36,6 +38,7 @@ int main (int argc, char *argv[])
     char buf[MAXDATASIZE], msg[MAXDATASIZE], *newline;
     char res[MAXDATASIZE];
     char *irc_host, *irc_port, *irc_chan, *irc_nick, *irc_pass, *irc_name;
+    char *irc_nick_ping;
 
     MYSQL *db;
 
@@ -51,6 +54,9 @@ int main (int argc, char *argv[])
         close (sockfd);
         return 1;
     }
+
+    snprintf (res, MAXDATASIZE, "%s:", irc_nick);
+    irc_nick_ping = strdup (res);
 
     numbytes = 0;
     buf[0] = '\0';
@@ -107,7 +113,172 @@ int main (int argc, char *argv[])
             continue;
         contents[0] = '\0';
         contents += 2;
+
+        if (strcmp (msgtype, "PRIVMSG") == 0)
+        {
+            char *send_to, *temp1;
+            char **args;
+            int arg_len;
+
+            args = NULL;
+            arg_len = 0;
+            send_to = NULL;
+
+            if (strcmp (recipient, irc_nick) == 0)
+            {
+                char *sep;
+
+                send_to = strdup (sender);
+                arg_len = parse_command (contents, &args);
+
+                sep = strchr (send_to, '!');
+                if (sep)
+                    *sep = '\0';
+            }
+            else if (strncmp (contents, irc_nick_ping, strlen (irc_nick_ping)) == 0)
+            {
+                send_to = strdup (recipient);
+                arg_len = parse_command (contents + strlen (irc_nick_ping), &args);
+            }
+
+            if (arg_len > 0)
+            {
+                if (strcmp (args[0], "add") == 0)
+                {
+                    if (strcmp (args[1], "genre") == 0)
+                    {
+                        char *title, *name;
+
+                        title = arg_len > 2? args[2] : NULL;
+                        name = arg_len > 3? args[3] : NULL;
+
+                        switch (genre_add (db, title, name))
+                        {
+                            case ERR_GENRE_TITLE_EMPTY:
+                                snprintf (res, MAXDATASIZE,
+                                          "PRIVMSG %s :Please specify a title for the genre.\r\n",
+                                          send_to);
+                                send_all (sockfd, res);
+
+                                break;
+
+                            case ERR_GENRE_TITLE_EXIST:
+                                temp1 = malloc (strlen (title) * 2 + 1);
+                                mysql_real_escape_string (db, temp1, title, strlen (title));
+
+                                snprintf (res, MAXDATASIZE,
+                                          "PRIVMSG %s :The genre \"%s\" already exists.\r\n",
+                                          send_to, temp1);
+                                send_all (sockfd, res);
+
+                                free (temp1);
+
+                                break;
+
+                            case ERR_GENRE_NAME_EXIST:
+                                temp1 = malloc (strlen (name) * 2 + 1);
+                                mysql_real_escape_string (db, temp1, name, strlen (name));
+
+                                snprintf (res, MAXDATASIZE,
+                                          "PRIVMSG %s :The genre with name \"%s\" already exists.\r\n",
+                                          send_to, temp1);
+                                send_all (sockfd, res);
+
+                                free (temp1);
+
+                                break;
+
+                            case ERR_QUERY_FAILED:
+                                snprintf (res, MAXDATASIZE,
+                                          "PRIVMSG %s :Sorry, an internal error occured. Please contact the administrators.\r\n",
+                                          send_to);
+                                send_all (sockfd, res);
+
+                                break;
+
+                            default:
+                                snprintf (res, MAXDATASIZE,
+                                          "PRIVMSG %s :Successfully added genre \"%s\"!\r\n",
+                                          send_to, title);
+                                send_all (sockfd, res);
+
+                                break;
+                        }
+                    }
+                }
+                else if (strcmp (args[0], "remove") == 0)
+                {
+                    if (strcmp (args[1], "genre") == 0)
+                    {
+                        char *genre;
+                        int ret;
+
+                        genre = arg_len > 2? args[2] : NULL;
+                        ret = genre_remove_with_title (db, genre);
+
+                        if (ret == ERR_GENRE_TITLE_DONT_EXIST)
+                            ret = genre_remove_with_name (db, genre);
+
+                        switch (ret)
+                        {
+                            case ERR_GENRE_TITLE_EMPTY:
+                                snprintf (res, MAXDATASIZE,
+                                          "PRIVMSG %s :Please specify the title of the genre.\r\n",
+                                          send_to);
+                                send_all (sockfd, res);
+
+                                break;
+
+                            case ERR_GENRE_TITLE_DONT_EXIST:
+                            case ERR_GENRE_NAME_DONT_EXIST:
+                                temp1 = malloc (strlen (genre) * 2 + 1);
+                                mysql_real_escape_string (db, temp1, genre, strlen (genre));
+
+                                snprintf (res, MAXDATASIZE,
+                                          "PRIVMSG %s :The genre with title nor name \"%s\" doesn't exists.\r\n",
+                                          send_to, temp1);
+                                send_all (sockfd, res);
+
+                                free (temp1);
+
+                                break;
+
+                            case ERR_QUERY_FAILED:
+                                snprintf (res, MAXDATASIZE,
+                                          "PRIVMSG %s :Sorry, an internal error occured. Please contact the administrators.\r\n",
+                                          send_to);
+                                send_all (sockfd, res);
+
+                                break;
+
+                            default:
+                                snprintf (res, MAXDATASIZE,
+                                          "PRIVMSG %s :Successfully removed genre \"%s\"!\r\n",
+                                          send_to, genre);
+                                send_all (sockfd, res);
+
+                                break;
+                        }
+                    }
+                }
+            }
+
+            if (args)
+            {
+                int i;
+
+                for (i = 0; i < arg_len; i++)
+                    free (args[i]);
+
+                free (args);
+            }
+
+            if (send_to)
+                free (send_to);
+        }
     }
+
+    free (irc_nick_ping);
 
     mysql_close (db);
     close (sockfd);
