@@ -4,3 +4,4 @@ src/main.c
 src/io-utils.c
 src/database.c
 src/irc.c
+src/genre.c
