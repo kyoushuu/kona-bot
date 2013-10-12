@@ -17,4 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define ERR_QUERY_FAILED                -0x00000001
+
 MYSQL *open_database ();
+int get_id_from_query (MYSQL *db, const char *query);

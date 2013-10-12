@@ -128,3 +128,30 @@ open_database ()
     else
         return db;
 }
+
+
+int
+get_id_from_query (MYSQL *db, const char *query)
+{
+    int result, id;
+
+    MYSQL_RES *result_set;
+    MYSQL_ROW row;
+
+    result = mysql_query (db, query);
+    if (result != 0)
+        return ERR_QUERY_FAILED;
+
+    result_set = mysql_use_result (db);
+
+    row = mysql_fetch_row (result_set);
+    if (row == NULL)
+        return ERR_QUERY_FAILED;
+
+    id = atoi (row[0]);
+
+    while (mysql_fetch_row (result_set) != NULL);
+    mysql_free_result (result_set);
+
+    return id;
+}
