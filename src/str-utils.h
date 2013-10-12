@@ -18,3 +18,5 @@
  */
 
 #define strempty(str) (str == NULL || str[0] == '\0')
+
+int parse_command (char *args, char ***argv);

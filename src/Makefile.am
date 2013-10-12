@@ -25,6 +25,7 @@ kona_bot_SOURCES = \
 	irc.h \
 	genre.c \
 	genre.h \
+	str-utils.c \
 	str-utils.h
 
 kona_bot_LDFLAGS = 
